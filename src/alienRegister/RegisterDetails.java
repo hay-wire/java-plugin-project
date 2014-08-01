@@ -1,35 +1,29 @@
 package alienRegister;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
-
-import pluginLoader.PluginClassLoader;
-import pluginLoader.PrintPlugin;
 
 public class RegisterDetails {
 
-	HashMap<Object, Object> alienDetails;
-	HashMap<String, PrintPlugin> printOptions;
+	HashMap<String, String> alienDetails = new HashMap<String, String>();
+	ArrayList<PrintPlugin> plugins = new ArrayList<PrintPlugin>();
 
-	public void setAlienDetails(Object prop, Object val) { 
-		alienDetails.put(prop, val);
+	public void setAlienDetails(String prop, String val) { 
+		System.out.println("prop is "+prop + " val is "+val);
+		try{ 
+			alienDetails.put(prop, val);
+		}catch(NullPointerException e) {
+			e.printStackTrace();
+			e.getMessage();
+		}
 	}
 
-	public HashMap<Object, Object> getAlienDetails() { 
+	public HashMap<String, String> getAlienDetails() { 
 		return alienDetails;
 	}
-	
-	public void addPrintOption(String name, PrintPlugin plugin) { 
-		printOptions.put(name, plugin);
-	}
-	
-	public HashMap<String, PrintPlugin> getPrintOptions() { 
-		return printOptions;
-	}
-
+		
 	/**
 	 * @param args
 	 */
@@ -42,7 +36,7 @@ public class RegisterDetails {
 		// check that we have a plugin for printing deatils in a file.
 		String pluginsDir = "bin/plugins";
 		
-		if(!regDetails.registerPlugins(pluginsDir))		{	
+		if(!regDetails.registerAllPlugins(pluginsDir))		{	
 			System.err.println("Sorry! No valid plugins found for saving details. Aborting..");
 			System.exit(-1);
 		}
@@ -51,20 +45,21 @@ public class RegisterDetails {
 		
 		System.out.println("Please enter the following details:\n");
 
-		System.out.print("Code Name: ");
-		regDetails.setAlienDetails("Code Name", in.nextLine());
+		System.out.print("CodeName: ");
+		String tmp = in.nextLine().toString();
+		regDetails.setAlienDetails("CodeName", tmp);
 		
-		System.out.print("Blood Color: ");
-		regDetails.setAlienDetails("Blood Color", in.nextLine());
+		System.out.print("BloodColor: ");
+		regDetails.setAlienDetails("BloodColor", in.nextLine());
 		
 		System.out.print("Home Planet: ");
 		regDetails.setAlienDetails("Home Planet", in.nextLine());
 		
 		System.out.print("How many legs it has? ");
-		regDetails.setAlienDetails("Number of Legs", in.nextInt());
+		regDetails.setAlienDetails("Number of Legs", in.nextInt()+"");
 		
 		System.out.print("How many antennas it has? ");
-		regDetails.setAlienDetails("Number of Antennae", in.nextInt());
+		regDetails.setAlienDetails("Number of Antennae", in.nextInt()+"");
 		
 		while(true) {
 			System.out.println("\nMore details? (Press 'y' to enter more details)");
@@ -82,31 +77,42 @@ public class RegisterDetails {
 		}
 		
 		System.out.println("Please choose a format to print in: ");
-		Set<String> pluginNames = regDetails.getPrintOptions().keySet();
-		for(String name: pluginNames) {
-			System.out.println(name);
+		for(int i=0; i<regDetails.plugins.size(); i++) {
+			PrintPlugin plugin = regDetails.plugins.get(i);
+			System.out.println(i+ " " + plugin.getPluginName());
 		}
 		System.out.println("Enter your choice: ");
 		
 		while(true) {
 			// read input and get corresponding class
-			PrintPlugin plugin = regDetails.getPrintOptions().get(in.nextLine());
+			int choice = in.nextInt();
 			
-			if(plugin != null) { 
+			try {
+				PrintPlugin plugin = regDetails.plugins.get(choice);
 				if(!regDetails.saveToFile(plugin))
 					System.exit(-1);
 				break;
+			
 			}
-			else {
-				System.out.println("Please choose a valid format");
+			catch(IndexOutOfBoundsException e) {
+				System.out.println("Please choose a valid format: ");
+			}
+			catch(Exception e) {
+				System.out.println("Exception occured while invoking plugin: ");
+				e.printStackTrace();
+				System.exit(-1);
 			}
 		}
+		
+		System.out.println("thank you!");
+		return;
 	}
 	
-	protected boolean registerPlugins(String pluginsDir) {
+
+	protected boolean registerAllPlugins(String pluginsDir) {
 		boolean hasPlugins = false;
 		File dir = new File(System.getProperty("user.dir") + File.separator + pluginsDir);
-		ClassLoader cl = new PluginClassLoader(dir);
+		ClassLoader cl = ClassLoader.getSystemClassLoader();
 
 		System.out.println("Looking for plugins in the directory '"+ dir.getAbsolutePath() +"'");
 
@@ -120,13 +126,15 @@ public class RegisterDetails {
 					if (! files[i].endsWith(".class"))
 						continue;
 
-					Class c = cl.loadClass(files[i].substring(0, files[i].indexOf(".")));
-					Class[] intf = c.getInterfaces();
+					// possible plugin
+					Class plugin = cl.loadClass("plugins."+files[i].substring(0, files[i].indexOf(".")));
+					Class[] intf = plugin.getInterfaces();
+					
 					for (int j=0; j<intf.length; j++) {
-						if (intf[j].getName().equals("PrintPlugin")) {
-							// the following line assumes that PluginFunction has a no-argument constructor
-							PrintPlugin plugin = (PrintPlugin) c.newInstance();
-							addPrintOption(plugin.getPluginName(), plugin);
+						if (intf[j].getName().equals("alienRegister.PrintPlugin")) {
+							// plugin confirmed. lets get the plugin name
+							PrintPlugin pluginObj = (PrintPlugin) plugin.newInstance();
+							plugins.add(pluginObj);
 							hasPlugins = true;
 							continue;
 						}
@@ -143,17 +151,24 @@ public class RegisterDetails {
 		return hasPlugins;
 	}
 
+
 	public boolean saveToFile(PrintPlugin plugin) {
 		
 		plugin.saveDetails(getAlienDetails());
 		
 		// check for errors, print
-		if(plugin.hasError() && !plugin.print()) {
+		if(plugin.hasError()) {
 			System.err.println("Requested file format's plugin gave an error. Aborting!");
 			return false;
 		}
-		
+		if(!plugin.print()) {
+			System.err.println("Printing file format's plugin gave an error. Aborting!");
+			return false;
+		}
+		System.out.println("done printing file!");
 		return true;
 	}	
 }
+
+
 

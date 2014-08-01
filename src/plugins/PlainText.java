@@ -3,16 +3,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import pluginLoader.PrintPlugin;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import alienRegister.PrintPlugin;
+
 
 public class PlainText implements PrintPlugin {
 
-	HashMap<Object, Object> details;
+	HashMap<String, String> details;
 	boolean err;
 	
 	public PlainText() {
@@ -20,7 +21,7 @@ public class PlainText implements PrintPlugin {
 	}
 
 	@Override
-	public boolean saveDetails(HashMap<Object, Object> details) {
+	public boolean saveDetails(HashMap<String, String> details) {
 		details = details;
 		return true;
 	}
@@ -34,8 +35,8 @@ public class PlainText implements PrintPlugin {
 	public boolean print() {
 		try {
 			
-			File file = new File("/users/mkyong/filename.txt");
-			String content = "This is the content to write into file";
+			File file = new File("bin/alienDetails.txt");
+			System.out.println("File saved at: "+file.getAbsolutePath());
 			
 			// if file doesnt exists, then create it
 			if (!file.exists()) {
@@ -50,6 +51,7 @@ public class PlainText implements PrintPlugin {
 		        Map.Entry opVal = (Map.Entry)it.next();
 				bw.write(opVal.getKey().toString() + "\t\t" + opVal.getValue().toString());
 		    }
+			System.out.println("File saved at: "+file.getAbsolutePath());
 			bw.close();
 			err = false;
 
