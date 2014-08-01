@@ -40,9 +40,7 @@ public class RegisterDetails {
 		Scanner in = new Scanner(System.in);
 		
 		// check that we have a plugin for printing deatils in a file.
-		String pluginsDir = "plugins";
-		if(args.length > 0)
-			pluginsDir = args[0];
+		String pluginsDir = "bin/plugins";
 		
 		if(!regDetails.registerPlugins(pluginsDir))		{	
 			System.err.println("Sorry! No valid plugins found for saving details. Aborting..");
