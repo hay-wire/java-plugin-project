@@ -1,6 +1,5 @@
 package plugins;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import java.io.BufferedWriter;
@@ -13,7 +12,7 @@ import alienRegister.PrintPlugin;
 
 public class PlainText implements PrintPlugin {
 
-	HashMap<String, String> details;
+	HashMap<String, String> details = new HashMap<String, String>();
 	boolean err;
 	
 	public PlainText() {
@@ -21,8 +20,8 @@ public class PlainText implements PrintPlugin {
 	}
 
 	@Override
-	public boolean saveDetails(HashMap<String, String> details) {
-		details = details;
+	public boolean saveDetails(HashMap<String, String> det) {
+		this.details = det;
 		return true;
 	}
 
@@ -32,11 +31,10 @@ public class PlainText implements PrintPlugin {
 	}
 
 	@Override
-	public boolean print() {
+	public boolean print(String filePath) {
 		try {
 			
-			File file = new File("bin/alienDetails.txt");
-			System.out.println("File saved at: "+file.getAbsolutePath());
+			File file = new File(filePath+"/alienDetails.txt");
 			
 			// if file doesnt exists, then create it
 			if (!file.exists()) {
@@ -45,13 +43,15 @@ public class PlainText implements PrintPlugin {
  
 			FileWriter fw = new FileWriter(file.getAbsoluteFile());
 			BufferedWriter bw = new BufferedWriter(fw);
-			Iterator it = details.entrySet().iterator();
 			
-			while (it.hasNext()) {
-		        Map.Entry opVal = (Map.Entry)it.next();
+			bw.write("Alien Details Form:"); bw.newLine();
+			bw.write("----------------------"); bw.newLine();
+
+			for(Map.Entry<String, String> opVal: details.entrySet()) {
+				bw.newLine();
 				bw.write(opVal.getKey().toString() + "\t\t" + opVal.getValue().toString());
-		    }
-			System.out.println("File saved at: "+file.getAbsolutePath());
+			}
+
 			bw.close();
 			err = false;
 
@@ -60,7 +60,7 @@ public class PlainText implements PrintPlugin {
 			System.err.print("Error writing to plain text file..");
 			e.printStackTrace();
 		}
-		return err;
+		return !err;
 	}
 
 	@Override

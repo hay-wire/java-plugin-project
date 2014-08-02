@@ -11,7 +11,7 @@ public interface PrintPlugin {
 	public String getPluginName();
 	
 	// print to file
-	public boolean print();
+	public boolean print(String filePath);
 
 	// can be called to determine whether the plugin
 	// aborted execution due to an error condition

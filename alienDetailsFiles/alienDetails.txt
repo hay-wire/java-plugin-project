@@ -1,0 +1,9 @@
+Alien Details Form:
+----------------------
+
+		hh
+Number of Antennae		2
+CodeName		gray
+Home Planet		plan
+Number of Legs		12
+BloodColor		blue

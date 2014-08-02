@@ -33,8 +33,21 @@ public class RegisterDetails {
 		RegisterDetails regDetails = new RegisterDetails();
 		Scanner in = new Scanner(System.in);
 		
+		// check if we got a printing file path
+		String filePath = ".";
+		if(args.length > 0) {
+			if(new File(args[0]).exists()) {
+				filePath = args[0];
+			}
+		}
+	
 		// check that we have a plugin for printing deatils in a file.
 		String pluginsDir = "bin/plugins";
+		if(args.length > 1) {
+			if(new File(args[1]).exists()) {
+				pluginsDir = args[1];
+			}
+		}
 		
 		if(!regDetails.registerAllPlugins(pluginsDir))		{	
 			System.err.println("Sorry! No valid plugins found for saving details. Aborting..");
@@ -56,55 +69,39 @@ public class RegisterDetails {
 		regDetails.setAlienDetails("Home Planet", in.nextLine());
 		
 		System.out.print("How many legs it has? ");
-		regDetails.setAlienDetails("Number of Legs", in.nextInt()+"");
+		regDetails.setAlienDetails("Number of Legs", in.nextLine()+""); // i may type "four"
 		
 		System.out.print("How many antennas it has? ");
-		regDetails.setAlienDetails("Number of Antennae", in.nextInt()+"");
-		
-		while(true) {
-			System.out.println("\nMore details? (Press 'y' to enter more details)");
-			String ch = in.nextLine();
-			if(ch.equals('y')) {
-				System.out.print("Please enter a property the alien has: ");
-				String prop = in.nextLine();
-				System.out.print("Value for the above property: ");
-				String val = in.nextLine();
-				regDetails.setAlienDetails(prop, val);
-			}
-			else {
-				break;
-			}
-		}
-		
-		System.out.println("Please choose a format to print in: ");
+		regDetails.setAlienDetails("Number of Antennae", in.nextLine()+""); // i may type "four"
+
+		System.out.println("\nPlease choose a format to print in: ");
 		for(int i=0; i<regDetails.plugins.size(); i++) {
 			PrintPlugin plugin = regDetails.plugins.get(i);
-			System.out.println(i+ " " + plugin.getPluginName());
+			System.out.println(i+ "\t" + plugin.getPluginName());
 		}
-		System.out.println("Enter your choice: ");
-		
+		System.out.print("\nEnter your choice: ");
+
 		while(true) {
 			// read input and get corresponding class
 			int choice = in.nextInt();
-			
 			try {
 				PrintPlugin plugin = regDetails.plugins.get(choice);
-				if(!regDetails.saveToFile(plugin))
+				if(!regDetails.saveToFile(plugin, filePath))
 					System.exit(-1);
 				break;
-			
 			}
 			catch(IndexOutOfBoundsException e) {
-				System.out.println("Please choose a valid format: ");
+				System.out.print("Please choose a valid format: ");
 			}
 			catch(Exception e) {
-				System.out.println("Exception occured while invoking plugin: ");
+				System.out.println("Exception occured while saving to file via plugin: ");
 				e.printStackTrace();
 				System.exit(-1);
 			}
 		}
 		
 		System.out.println("thank you!");
+		in.close();
 		return;
 	}
 	
@@ -152,7 +149,7 @@ public class RegisterDetails {
 	}
 
 
-	public boolean saveToFile(PrintPlugin plugin) {
+	public boolean saveToFile(PrintPlugin plugin, String filePath) {
 		
 		plugin.saveDetails(getAlienDetails());
 		
@@ -161,11 +158,12 @@ public class RegisterDetails {
 			System.err.println("Requested file format's plugin gave an error. Aborting!");
 			return false;
 		}
-		if(!plugin.print()) {
+		
+		if(!plugin.print(filePath)) {
 			System.err.println("Printing file format's plugin gave an error. Aborting!");
 			return false;
 		}
-		System.out.println("done printing file!");
+		System.out.println("Done saving to file!");
 		return true;
 	}	
 }
