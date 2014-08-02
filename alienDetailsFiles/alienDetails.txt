@@ -1,9 +1,8 @@
 Alien Details Form:
 ----------------------
 
-		hh
 Number of Antennae		2
-CodeName		gray
-Home Planet		plan
-Number of Legs		12
+CodeName		gray matter
+Home Planet		jupiter
+Number of Legs		5
 BloodColor		blue
